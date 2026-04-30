@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: cleanup
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: remove
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "cleanup done"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: eslint
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: lint
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "eslint passed"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: jest-test
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: test
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "tests passed"

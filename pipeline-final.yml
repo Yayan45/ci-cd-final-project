@@ -14,19 +14,8 @@ spec:
         - name: source
           workspace: output
 
-    - name: git-clone
-      runAfter: ["cleanup"]
-      taskRef:
-        name: git-clone
-      params:
-        - name: url
-          value: https://github.com/Yayan45/ci-cd-final-project
-      workspaces:
-        - name: output
-          workspace: output
-
     - name: eslint
-      runAfter: ["git-clone"]
+      runAfter: ["cleanup"]
       taskRef:
         name: eslint
       workspaces:
@@ -50,6 +39,3 @@ spec:
           value: |
             echo "SERVICERUNNING"
             echo "Server running on port 8000"
-      workspaces:
-        - name: source
-          workspace: output
