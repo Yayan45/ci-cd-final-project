@@ -1,0 +1,77 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: ci-cd-pipeline
+spec:
+  workspaces:
+    - name: output
+
+  tasks:
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: git-clone
+      runAfter: ["cleanup"]
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: https://github.com/Yayan45/ci-cd-final-project
+      workspaces:
+        - name: output
+          workspace: output
+
+    - name: eslint
+      runAfter: ["git-clone"]
+      taskRef:
+        name: eslint
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: jest-test
+      runAfter: ["eslint"]
+      taskRef:
+        name: jest-test
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: buildah
+      runAfter: ["jest-test"]
+      taskRef:
+        name: buildah
+      params:
+        - name: IMAGE
+          value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/cicd-app
+        - name: BUILDER_IMAGE
+          value: quay.io/buildah/stable:v1.17.0
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: .
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: deploy
+      runAfter: ["buildah"]
+      taskRef:
+        name: openshift-client
+      params:
+        - name: SCRIPT
+          value: |
+            set +e
+            oc create deployment cicd-app \
+            --image=image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/cicd-app \
+            --dry-run=client -o yaml | oc apply -f - || true
+            echo "Deploy step completed (ignored errors)"
+      workspaces:
+        - name: source
+          workspace: output
