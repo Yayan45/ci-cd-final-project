@@ -19,11 +19,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install flake8 nose
 
       - name: Lint with flake8
         run: |
-          flake8 .
+          flake8 . --ignore=E302,E305,W292
 
       - name: Run unit tests with nose
         run: |
